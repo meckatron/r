@@ -1,0 +1,12 @@
+# local tooling, not part of the site
+.claude/
+
+# build output, rebuilt on demand
+*.zip
+
+# OS and editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+__pycache__/
+*.pyc

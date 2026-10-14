@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R Practice</title>
+<meta name="description" content="Practice R programming in the browser against a real hospital dataset, with graded exercises, hints and solutions.">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="vendor/codemirror/codemirror.min.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button id="runBtn" class="tbtn tbtn-run" title="Run (Ctrl+Enter)">Run <span class="play">&#9654;</span></button>
+  <button id="settingsBtn" class="tbtn">Settings</button>
+  <button id="questionsBtn" class="tbtn">View Questions</button>
+  <select id="datasetSel" class="tsel" aria-label="Dataset">
+    <option value="hospital">hospital</option>
+  </select>
+  <span id="engineStatus" class="engine-status" data-state="boot">Starting R&hellip;</span>
+
+  <span class="spacer"></span>
+
+  <button id="aboutBtn" class="tbtn">About</button>
+  <button id="toggleLeft" class="tbtn">Left Menu</button>
+  <button id="toggleRight" class="tbtn">Right Menu</button>
+</header>
+
+<main class="workspace" id="workspace">
+
+  <aside class="panel panel-left" id="leftPanel">
+    <div class="panel-scroll">
+
+      <section class="box" data-open="true">
+        <button class="box-title" data-acc><strong>R Data Frames</strong></button>
+        <div class="box-body">
+          <button class="wide-button" id="peekAllBtn">View Structure</button>
+          <div id="schemaList"></div>
+        </div>
+      </section>
+
+      <section class="box">
+        <button class="box-title" data-acc><strong>Learning Resources</strong></button>
+        <div class="box-body">
+          <div id="resourceTree"></div>
+        </div>
+      </section>
+
+      <section class="box">
+        <button class="box-title" data-acc><strong>Your Progress</strong></button>
+        <div class="box-body">
+          <div id="progressBox" class="progress-box"></div>
+          <div class="btn-row">
+            <button id="exportBtn" class="btn btn-sm">Export</button>
+            <button id="importBtn" class="btn btn-sm">Import</button>
+            <button id="resetBtn" class="btn btn-sm btn-danger">Reset</button>
+          </div>
+          <input type="file" id="importFile" accept="application/json" hidden>
+        </div>
+      </section>
+
+    </div>
+  </aside>
+
+  <div class="gutter gutter-v" id="gutterLeft" role="separator" aria-label="Resize left panel" tabindex="0"></div>
+
+  <div class="center" id="center">
+    <div class="editor-wrap" id="editorWrap">
+      <textarea id="editor"></textarea>
+    </div>
+
+    <div class="gutter gutter-h" id="gutterH" role="separator" aria-label="Resize results" tabindex="0"></div>
+
+    <section class="output" id="output">
+      <div class="output-tabs" role="tablist">
+        <button class="otab is-active" data-otab="result" role="tab">Result</button>
+        <button class="otab" data-otab="console" role="tab">Console</button>
+        <span class="output-status" id="outputStatus"></span>
+      </div>
+
+      <div class="output-body" id="outPaneResult">
+        <div class="placeholder" id="resultPlaceholder">
+          <h1>Practice R</h1>
+          <p>
+            Your result is printed here.<br>
+            Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> or click the run button to execute the code.
+          </p>
+        </div>
+        <div id="resultTable"></div>
+      </div>
+
+      <div class="output-body" id="outPaneConsole" hidden>
+        <pre id="consoleOut" class="console"></pre>
+      </div>
+    </section>
+  </div>
+
+  <div class="gutter gutter-v" id="gutterRight" role="separator" aria-label="Resize right panel" tabindex="0"></div>
+
+  <aside class="panel panel-right" id="rightPanel">
+    <div class="panel-scroll">
+
+      <div class="q-start" id="qStart">
+        <button id="questionsBtn2" class="wide-button">View All Questions</button>
+        <div class="q-start-row">
+          <button id="startBtn" class="wide-button wide-button-primary">Start</button>
+          <select id="difficultySel" class="tsel" aria-label="Difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+        <div class="question-box question-box-quiet">
+          Pick a question, write R in the editor, and run it. Your answer is checked
+          automatically against the expected result every time you run.
+        </div>
+      </div>
+
+      <div class="q-live" id="qLive" hidden>
+        <div class="question-box">
+          <div class="q-meta">
+            <span class="chip" id="qDiff">easy</span>
+            <span class="chip chip-quiet" id="qTopic">Subsetting</span>
+            <span class="chip chip-quiet" id="qNum">1 / 1</span>
+          </div>
+          <div class="q-prompt" id="qPrompt"></div>
+        </div>
+
+        <div class="q-actions">
+          <button id="hintBtn" class="wide-button">Get Hint</button>
+          <button id="solutionBtn" class="wide-button">View Solution</button>
+        </div>
+
+        <div class="verdict" id="verdict" hidden></div>
+
+        <section class="box box-lg" data-open="true">
+          <button class="box-title" data-acc>Data Info</button>
+          <div class="box-body" id="qTables"></div>
+        </section>
+
+        <section class="box box-lg">
+          <button class="box-title" data-acc>Hints</button>
+          <div class="box-body" id="qHints"></div>
+        </section>
+
+        <section class="box box-lg" data-open="true">
+          <button class="box-title" data-acc>Expected Output</button>
+          <div class="box-body" id="qExpected"></div>
+        </section>
+
+        <div class="q-actions">
+          <button id="prevQBtn" class="wide-button">Previous</button>
+          <button id="nextQBtn" class="wide-button">Next</button>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+</main>
+
+<div class="modal" id="questionModal" hidden>
+  <div class="modal-card modal-wide" role="dialog" aria-modal="true" aria-label="All questions">
+    <header class="modal-head">
+      <h2>All Questions</h2>
+      <button class="modal-x" data-close>&times;</button>
+    </header>
+    <div class="modal-toolbar">
+      <div class="tabs" id="qTabs">
+        <button class="tab is-active" data-diff="easy">Easy</button>
+        <button class="tab" data-diff="medium">Medium</button>
+        <button class="tab" data-diff="hard">Hard</button>
+      </div>
+      <input type="search" id="qSearch" class="input" placeholder="Filter questions&hellip;">
+    </div>
+    <div class="modal-body" id="qList"></div>
+  </div>
+</div>
+
+<div class="modal" id="settingsModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Settings">
+    <header class="modal-head">
+      <h2>Settings</h2>
+      <button class="modal-x" data-close>&times;</button>
+    </header>
+    <div class="modal-body">
+      <div class="field">
+        <label for="setTheme">Theme</label>
+        <select id="setTheme" class="select">
+          <option value="system">Follow system</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="setFont">Editor font size</label>
+        <select id="setFont" class="select">
+          <option value="12">12 px</option>
+          <option value="13">13 px</option>
+          <option value="14" selected>14 px</option>
+          <option value="16">16 px</option>
+          <option value="18">18 px</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="setRows">Result rows per page</label>
+        <select id="setRows" class="select">
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100" selected>100</option>
+          <option value="250">250</option>
+        </select>
+      </div>
+      <div class="field field-check">
+        <input type="checkbox" id="setAutoCheck" checked>
+        <label for="setAutoCheck">Check my answer automatically on every run</label>
+      </div>
+      <div class="field field-check">
+        <input type="checkbox" id="setWrap">
+        <label for="setWrap">Wrap long lines in the editor</label>
+      </div>
+      <div class="field">
+        <label>Tidyverse packages</label>
+        <div class="btn-row">
+          <button id="loadTidyBtn" class="btn btn-sm">Install dplyr + tidyr</button>
+          <span class="muted" id="tidyStatus">not installed</span>
+        </div>
+        <p class="hint-text">
+          Base R is ready immediately. Installing dplyr downloads about 15&nbsp;MB into
+          this browser session and stays until you reload the page. The dplyr
+          alternate solutions need it.
+        </p>
+      </div>
+      <div class="field">
+        <label>Keyboard</label>
+        <ul class="keylist">
+          <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> run the code</li>
+          <li><kbd>Ctrl</kbd>+<kbd>/</kbd> comment or uncomment</li>
+          <li><kbd>Esc</kbd> close a dialog</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="aboutModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="About">
+    <header class="modal-head">
+      <h2>About</h2>
+      <button class="modal-x" data-close>&times;</button>
+    </header>
+    <div class="modal-body">
+      <p>
+        R Practice runs a real R session in your browser through
+        <strong>webR</strong>, which is R compiled to WebAssembly. Nothing is sent
+        to a server: the data frames are generated locally and your code is
+        evaluated locally.
+      </p>
+      <p>
+        Answers are graded on the value your code returns rather than on the text
+        of the code, so base R, <code>subset()</code> and a dplyr pipeline are all
+        accepted when they produce the same table.
+      </p>
+      <p class="hint-text">
+        The layout and workflow follow sql-practice.com, rebuilt for R.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="vendor/codemirror/codemirror.min.js"></script>
+<script src="vendor/codemirror/r.min.js"></script>
+<script src="vendor/codemirror/active-line.min.js"></script>
+<script src="vendor/codemirror/matchbrackets.min.js"></script>
+<script src="vendor/codemirror/closebrackets.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/exercises.js"></script>
+<script src="js/alternates.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
