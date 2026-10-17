@@ -41,7 +41,7 @@ const progress = loadProgress();
 /* ────────────────────────── persistence ────────────────────────── */
 
 function loadSettings() {
-  const base = { theme: 'system', font: 14, rows: 100, autoCheck: true, wrap: false, sound: true };
+  const base = { theme: 'system', font: 16, rows: 100, autoCheck: true, wrap: false, sound: true };
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
     return raw ? Object.assign(base, JSON.parse(raw)) : base;

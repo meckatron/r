@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Must run before anything that needs SharedArrayBuffer. On a host that
+     already sends the isolation headers this detects them and does nothing. -->
+<script src="coi-serviceworker.js"></script>
 <title>R Practice</title>
 <meta name="description" content="Practice R programming in the browser against a real hospital dataset, with graded exercises, hints and solutions.">
 <link rel="icon" href="favicon.ico" sizes="any">
@@ -199,8 +202,8 @@
         <select id="setFont" class="select">
           <option value="12">12 px</option>
           <option value="13">13 px</option>
-          <option value="14" selected>14 px</option>
-          <option value="16">16 px</option>
+          <option value="14">14 px</option>
+          <option value="16" selected>16 px</option>
           <option value="18">18 px</option>
         </select>
       </div>
